@@ -57,22 +57,6 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-base-black text-white font-base">
-      {/* Active access indicator */}
-      {hasAccess && (
-        <motion.div
-          className="fixed top-20 right-6 z-50 flex flex-col items-end gap-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 1 }}
-        >
-          <AccessBadge
-            timeRemaining={timeRemaining}
-            timeFormatted={timeFormatted}
-            variant="default"
-          />
-        </motion.div>
-      )}
-
       {/* Player Overlay */}
       <AnimatePresence mode="wait">
         {showPlayer && playerMovie && (
@@ -141,14 +125,6 @@ function HomeContent() {
   );
 }
 
-/**
- * Home page wrapped in AccessGate.
- * Users without a valid 24h pass will be redirected to /unlock.
- */
 export default function HomePage() {
-  return (
-    <AccessGate>
-      <HomeContent />
-    </AccessGate>
-  );
+  return <HomeContent />;
 }

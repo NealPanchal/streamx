@@ -37,65 +37,19 @@ export function useAccess(
   walletAddress?: string
 ): UseAccessReturn {
   const router = useRouter();
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [accessData, setAccessData] = useState<AccessData | null>(null);
-
-  const performCheck = useCallback(async () => {
-    try {
-      const status = await checkAccess(walletAddress);
-      setHasAccess(status.isValid);
-      setTimeRemaining(status.timeRemaining);
-      setAccessData(status.data);
-
-      // If access has expired and redirect is enabled
-      if (!status.isValid && redirectOnExpire && !loading) {
-        router.push('/unlock');
-      }
-    } catch {
-      setHasAccess(false);
-      setTimeRemaining(0);
-      setAccessData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [walletAddress, redirectOnExpire, router, loading]);
-
-  // Initial check on mount
-  useEffect(() => {
-    performCheck();
-  }, [performCheck]);
-
-  // Update countdown every second
-  useEffect(() => {
-    if (!hasAccess || timeRemaining <= 0) return;
-
-    const interval = setInterval(() => {
-      setTimeRemaining((prev) => {
-        const next = Math.max(0, prev - 1000);
-
-        // Access just expired
-        if (next === 0) {
-          setHasAccess(false);
-          if (redirectOnExpire) {
-            router.push('/unlock');
-          }
-        }
-
-        return next;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hasAccess, timeRemaining, redirectOnExpire, router]);
-
+  
+  // Lock feature removed — always return active access status
   return {
-    hasAccess,
-    loading,
-    timeRemaining,
-    timeFormatted: formatTimeRemaining(timeRemaining),
-    accessData,
-    recheck: performCheck,
+    hasAccess: true,
+    loading: false,
+    timeRemaining: 86400000, // 24 hours constant
+    timeFormatted: formatTimeRemaining(86400000),
+    accessData: walletAddress ? {
+      walletAddress,
+      txHash: '0x...',
+      grantedAt: Date.now(),
+      expiresAt: Date.now() + 86400000,
+    } : null,
+    recheck: async () => {},
   };
 }

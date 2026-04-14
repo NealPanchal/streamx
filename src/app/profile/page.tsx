@@ -154,20 +154,8 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 )}
-                
-                {hasAccess ? (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider mx-auto md:mx-0">
-                    <ShieldCheck size={12} />
-                    Unlimited Access Active
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-500 text-xs font-bold uppercase tracking-wider mx-auto md:mx-0">
-                    <AlertCircle size={12} />
-                    Limited Mode
-                  </div>
-                )}
               </div>
-
+                
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-gray-400 font-medium">
                 <div className="flex items-center gap-2">
                   <CreditCard size={16} className="text-base-blue" />
@@ -185,38 +173,20 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Access Card */}
-          <div className="md:col-span-1 p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-               Account Status
-            </h3>
-            
-            <div className="space-y-6">
-               <div className="p-5 rounded-2xl bg-white/5 border border-white/5">
-                  <p className="text-gray-400 text-sm mb-1">Time Remaining</p>
-                  <p className="text-3xl font-black text-base-blue">{timeFormatted}</p>
-               </div>
-               
-               <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                     <span className="text-gray-500">Service Level</span>
-                     <span className="text-white font-bold">{hasAccess ? 'Premium' : 'Guest'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                     <span className="text-gray-500">Network</span>
-                     <span className="text-white font-bold">Base Mainnet</span>
-                  </div>
-               </div>
-
-               <button 
-                  onClick={() => router.push('/unlock')}
-                  className="w-full py-4 mt-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl flex items-center justify-center gap-3 transition-all font-bold text-sm"
-               >
-                  Extend Access <ChevronRight size={16} />
-               </button>
-            </div>
+        {/* Dashboard Content */}
+        <div className="space-y-12">
+          {/* Stats / Info Placeholder */}
+          <div className="p-8 md:p-12 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col md:flex-row items-center gap-10">
+             <div className="w-20 h-20 bg-base-blue/10 rounded-3xl flex items-center justify-center flex-shrink-0">
+                <ShieldCheck size={40} className="text-base-blue" />
+             </div>
+             <div>
+                <h3 className="text-2xl font-bold mb-2">Welcome to Base Stream</h3>
+                <p className="text-gray-400 max-w-2xl">
+                   You are currently on the Base mainnet with full access to our entire streaming library. 
+                   As a decentralized platform, your watch history and preferences are securely stored locally on your device.
+                </p>
+             </div>
           </div>
 
           {/* Activity Placeholder / Stats */}
