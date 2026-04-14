@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Play, Plus, ThumbsUp, Info, Check } from 'lucide-react';
 import { MovieCardProps } from '@/types';
-import { isFavorite, toggleFavorite } from '@/utils/storage';
+import { isFavorite, toggleFavorite, getWatchProgress } from '@/utils/storage';
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 
@@ -24,6 +25,7 @@ const MovieCard = ({
   progress: initialProgress,
   className = '',
 }: MovieCardProps) => {
+  const { address } = useAccount();
   const router = useRouter();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -33,29 +35,13 @@ const MovieCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [inFavorites, setInFavorites] = useState(false);
 
-  const [progress, setProgress] = useState(initialProgress || 0);
-
   useEffect(() => {
-    setInFavorites(isFavorite(id, media_type));
-    
-    // Load progress from localStorage on client side
-    if (!initialProgress) {
-      try {
-        const data = localStorage.getItem('cineby_watch_progress');
-        const progressData = data ? JSON.parse(data) : {};
-        const key = media_type === 'movie'
-          ? `movie_${id}`
-          : `tv_${id}_s${season}_e${episode}`;
-        
-        if (progressData[key]) {
-          setProgress(progressData[key].percentage || 0);
-        }
-      } catch (err) {
-        console.error('Error loading progress:', err);
-      }
-    }
-  }, [id, media_type, initialProgress, season, episode]);
+    setInFavorites(isFavorite(id, media_type, address));
+  }, [id, media_type, address]);
 
+  const savedProgress = getWatchProgress(id, media_type, season, episode, address);
+
+  const progress = initialProgress || savedProgress?.percentage || 0;
   const progressPercentage = Math.min(progress, 99);
 
   const imageUrl = poster_path
@@ -141,7 +127,7 @@ const MovieCard = ({
     e.preventDefault();
     e.stopPropagation();
     const item = { id, title, poster_path, backdrop_path, vote_average, release_date, first_air_date, media_type };
-    toggleFavorite(item);
+    toggleFavorite(item, address);
     setInFavorites(!inFavorites);
   };
 

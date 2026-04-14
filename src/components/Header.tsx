@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, User, LogOut, Play, List, Home, X, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAccount } from 'wagmi';
 import { cn } from '@/utils';
+import { getUserProfile } from '@/utils/storage';
 import Logo from './Logo';
 
 const Header = () => {
@@ -16,6 +18,16 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { address, isConnected } = useAccount();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      setProfile(getUserProfile(address));
+    } else {
+      setProfile(null);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -149,8 +161,12 @@ const Header = () => {
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex items-center gap-2 group"
             >
-              <div className="w-9 h-9 bg-gradient-to-t from-gray-800 to-gray-700 rounded-lg flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-all shadow-sm">
-                <User size={18} className="text-white" />
+              <div className="w-9 h-9 bg-zinc-800 rounded-lg flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-all shadow-sm overflow-hidden">
+                {profile?.avatar ? (
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={18} className="text-white" />
+                )}
               </div>
               <ChevronDown size={14} className={cn("transition-transform duration-300", isUserMenuOpen && "rotate-180")} />
             </button>
@@ -158,6 +174,7 @@ const Header = () => {
             <AnimatePresence>
               {isUserMenuOpen && (
                 <motion.div
+                  key="user-menu"
                   initial={{ opacity: 0, y: 15, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 15, scale: 0.95 }}

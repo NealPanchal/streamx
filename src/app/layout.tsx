@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
+import { Providers } from "./providers";
+import LayoutShell from "@/components/LayoutShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://cineby.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://basestream.vercel.app'),
   openGraph: {
     title: "Base Stream - Stream Movies & TV Shows",
     description: "Discover and stream your favorite movies and TV shows with Base Stream",
@@ -57,8 +58,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Providers } from "./providers";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -71,10 +70,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-base-black">
         <Providers>
-          <Header />
-          <main className="flex-1">
+          <LayoutShell>
             {children}
-          </main>
+          </LayoutShell>
         </Providers>
       </body>
     </html>

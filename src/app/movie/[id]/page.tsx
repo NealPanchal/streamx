@@ -5,12 +5,14 @@ import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ThumbsUp, Share2, ArrowLeft, Star, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
 import { useMovieDetails } from '@/lib/tmdb';
 import ContentRow from '@/components/ContentRow';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import { addToWatchHistory } from '@/utils/storage';
 
 export default function MovieDetailPage() {
+  const { address: walletAddress } = useAccount();
   const params = useParams();
   const movieId = params.id as string;
   const { data: movie, isLoading, error } = useMovieDetails(movieId);
@@ -22,12 +24,13 @@ export default function MovieDetailPage() {
       addToWatchHistory({
         id: movie.id,
         title: movie.title,
-        type: 'movie',
+        media_type: 'movie',
         poster_path: movie.poster_path,
         backdrop_path: movie.backdrop_path,
-      });
+        vote_average: movie.vote_average,
+      }, walletAddress);
     }
-  }, [movie]);
+  }, [movie, walletAddress]);
 
   const handlePlay = () => {
     setPlayerLoading(true);

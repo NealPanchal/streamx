@@ -1,23 +1,33 @@
 // Storage utility for managing watch history and progress
+import { MovieCardProps } from '@/types';
 
 const STORAGE_KEYS = {
-  WATCH_HISTORY: 'cineby_watch_history',
-  WATCH_PROGRESS: 'cineby_watch_progress',
-  LAST_WATCHED: 'cineby_last_watched',
-  USER_PREFERENCES: 'cineby_user_preferences',
-  SEARCH_HISTORY: 'cineby_search_history',
-  FAVORITES: 'cineby_favorites'
+  WATCH_HISTORY: 'basestream_watch_history',
+  WATCH_PROGRESS: 'basestream_watch_progress',
+  FAVORITES: 'basestream_favorites',
+  USER_PROFILE: 'basestream_user_profile',
+  USER_PREFERENCES: 'basestream_user_preferences',
+  SEARCH_HISTORY: 'basestream_search_history',
+};
+
+/**
+ * Helper to get a wallet-specific storage key
+ */
+const getWalletKey = (key: string, address?: string) => {
+  if (!address) return key;
+  return `${key}_${address.toLowerCase()}`;
 };
 
 /**
  * Get watch history from localStorage
  * @returns {Array} Array of watched items
  */
-export const getWatchHistory = () => {
-  if (typeof window === 'undefined') return [];
+export const getWatchHistory = (address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return [];
   
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.WATCH_HISTORY);
+    const key = getWalletKey(STORAGE_KEYS.WATCH_HISTORY, address);
+    const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('Error getting watch history:', error);
@@ -34,23 +44,16 @@ export const getWatchHistory = () => {
  * @param {string} item.poster_path - Poster image path
  * @param {number} item.timestamp - Current timestamp
  */
-export const addToWatchHistory = (item: any) => {
-  if (typeof window === 'undefined') return [];
+export const addToWatchHistory = (item: MovieCardProps, address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return [];
   
   try {
-    const history = getWatchHistory();
-    const existingIndex = history.findIndex((h: any) => h.id === item.id && h.type === item.type);
+    const history = getWatchHistory(address);
+    const existingIndex = history.findIndex((h: MovieCardProps) => h.id === item.id && h.media_type === item.media_type);
     
     const watchItem = {
-      id: item.id,
-      title: item.title,
-      type: item.type,
-      poster_path: item.poster_path,
-      backdrop_path: item.backdrop_path,
-      season: item.season,
-      episode: item.episode,
+      ...item,
       timestamp: Date.now(),
-      ...item
     };
 
     if (existingIndex > -1) {
@@ -61,7 +64,8 @@ export const addToWatchHistory = (item: any) => {
 
     // Keep only last 50 items
     const trimmedHistory = history.slice(0, 50);
-    localStorage.setItem(STORAGE_KEYS.WATCH_HISTORY, JSON.stringify(trimmedHistory));
+    const key = getWalletKey(STORAGE_KEYS.WATCH_HISTORY, address);
+    localStorage.setItem(key, JSON.stringify(trimmedHistory));
     
     return trimmedHistory;
   } catch (error) {
@@ -78,15 +82,16 @@ export const addToWatchHistory = (item: any) => {
  * @param {number} episode - Episode number (for TV)
  * @returns {Object|null} Progress data or null
  */
-export const getWatchProgress = (id: number, type: string, season?: number, episode?: number) => {
-  if (typeof window === 'undefined') return null;
+export const getWatchProgress = (id: number, type: string, season?: number, episode?: number, address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return null;
   
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.WATCH_PROGRESS);
+    const key = getWalletKey(STORAGE_KEYS.WATCH_PROGRESS, address);
+    const data = localStorage.getItem(key);
     const progress = data ? JSON.parse(data) : {};
     
-    const key = type === 'movie' ? `movie_${id}` : `tv_${id}_s${season}_e${episode}`;
-    return progress[key] || null;
+    const itemKey = type === 'movie' ? `movie_${id}` : `tv_${id}_s${season}_e${episode}`;
+    return progress[itemKey] || null;
   } catch (error) {
     console.error('Error getting watch progress:', error);
     return null;
@@ -95,24 +100,19 @@ export const getWatchProgress = (id: number, type: string, season?: number, epis
 
 /**
  * Save watch progress
- * @param {number} id - Item ID
- * @param {string} type - 'movie' or 'tv'
- * @param {number} currentTime - Current playback time in seconds
- * @param {number} duration - Total duration in seconds
- * @param {number} season - Season number (for TV)
- * @param {number} episode - Episode number (for TV)
  */
-export const saveWatchProgress = (id: number, type: string, currentTime: number, duration: number, season?: number, episode?: number) => {
-  if (typeof window === 'undefined') return null;
+export const saveWatchProgress = (id: number, type: string, currentTime: number, duration: number, season?: number, episode?: number, address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return null;
   
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.WATCH_PROGRESS);
+    const key = getWalletKey(STORAGE_KEYS.WATCH_PROGRESS, address);
+    const data = localStorage.getItem(key);
     const progress = data ? JSON.parse(data) : {};
     
-    const key = type === 'movie' ? `movie_${id}` : `tv_${id}_s${season}_e${episode}`;
+    const itemKey = type === 'movie' ? `movie_${id}` : `tv_${id}_s${season}_e${episode}`;
     const percentage = (currentTime / duration) * 100;
     
-    progress[key] = {
+    progress[itemKey] = {
       id,
       type,
       currentTime,
@@ -123,8 +123,8 @@ export const saveWatchProgress = (id: number, type: string, currentTime: number,
       lastUpdated: Date.now()
     };
 
-    localStorage.setItem(STORAGE_KEYS.WATCH_PROGRESS, JSON.stringify(progress));
-    return progress[key];
+    localStorage.setItem(key, JSON.stringify(progress));
+    return progress[itemKey];
   } catch (error) {
     console.error('Error saving watch progress:', error);
     return null;
@@ -133,23 +133,22 @@ export const saveWatchProgress = (id: number, type: string, currentTime: number,
 
 /**
  * Get continue watching items
- * @param {number} limit - Maximum number of items to return
- * @returns {Array} Array of items with progress
  */
-export const getContinueWatching = (limit = 10) => {
+export const getContinueWatching = (address?: string, limit = 10) => {
   if (typeof window === 'undefined') return [];
   
   try {
-    const history = getWatchHistory();
-    const data = localStorage.getItem(STORAGE_KEYS.WATCH_PROGRESS);
+    const history = getWatchHistory(address);
+    const key = getWalletKey(STORAGE_KEYS.WATCH_PROGRESS, address);
+    const data = localStorage.getItem(key);
     const progress = data ? JSON.parse(data) : {};
     
     const itemsWithProgress = history.map((item: any) => {
-      const key = item.type === 'movie' 
+      const itemKey = item.media_type === 'movie' 
         ? `movie_${item.id}` 
         : `tv_${item.id}_s${item.season}_e${item.episode}`;
       
-      const progressData = progress[key];
+      const progressData = progress[itemKey];
       
       if (progressData && progressData.percentage > 5 && progressData.percentage < 95) {
         return {
@@ -172,6 +171,31 @@ export const getContinueWatching = (limit = 10) => {
 };
 
 /**
+ * Get user profile
+ */
+export const getUserProfile = (address: string) => {
+  if (typeof window === 'undefined' || !address) return null;
+  const key = getWalletKey(STORAGE_KEYS.USER_PROFILE, address);
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : {
+    address,
+    username: 'Base User',
+    avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + address,
+    joinedAt: Date.now()
+  };
+};
+
+/**
+ * Save user profile
+ */
+export const saveUserProfile = (address: string, profile: any) => {
+  if (typeof window === 'undefined' || !address) return null;
+  const key = getWalletKey(STORAGE_KEYS.USER_PROFILE, address);
+  localStorage.setItem(key, JSON.stringify(profile));
+  return profile;
+};
+
+/**
  * Clear watch history
  */
 export const clearWatchHistory = () => {
@@ -180,7 +204,6 @@ export const clearWatchHistory = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.WATCH_HISTORY);
     localStorage.removeItem(STORAGE_KEYS.WATCH_PROGRESS);
-    localStorage.removeItem(STORAGE_KEYS.LAST_WATCHED);
   } catch (error) {
     console.error('Error clearing watch history:', error);
   }
@@ -191,7 +214,11 @@ export const clearWatchHistory = () => {
  * @returns {Object} User preferences
  */
 export const getUserPreferences = () => {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return {
+    autoplay: true,
+    quality: 'auto' as const,
+    subtitles: false
+  };
   
   try {
     const data = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
@@ -215,7 +242,7 @@ export const getUserPreferences = () => {
  * @param {Object} preferences - User preferences
  */
 export const saveUserPreferences = (preferences: any) => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return null;
   
   try {
     const currentPrefs = getUserPreferences();
@@ -233,7 +260,7 @@ export const saveUserPreferences = (preferences: any) => {
  * @returns {Array} Array of search queries
  */
 export const getSearchHistory = () => {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return [];
   
   try {
     const data = localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY);
@@ -249,7 +276,7 @@ export const getSearchHistory = () => {
  * @param {string} query - Search query
  */
 export const addToSearchHistory = (query: string) => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return;
   
   try {
     const history = getSearchHistory();
@@ -273,7 +300,7 @@ export const addToSearchHistory = (query: string) => {
  * Clear search history
  */
 export const clearSearchHistory = () => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.removeItem !== 'function') return;
   
   try {
     localStorage.removeItem(STORAGE_KEYS.SEARCH_HISTORY);
@@ -286,10 +313,11 @@ export const clearSearchHistory = () => {
  * Get favorites from localStorage
  * @returns {Array} Array of favorite items
  */
-export const getFavorites = () => {
-  if (typeof window === 'undefined') return [];
+export const getFavorites = (address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return [];
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+    const key = getWalletKey(STORAGE_KEYS.FAVORITES, address);
+    const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('Error getting favorites:', error);
@@ -301,11 +329,11 @@ export const getFavorites = () => {
  * Toggle item in favorites
  * @param {Object} item - Item to toggle
  */
-export const toggleFavorite = (item: any) => {
-  if (typeof window === 'undefined') return [];
+export const toggleFavorite = (item: MovieCardProps, address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return [];
   try {
-    const favorites = getFavorites();
-    const existingIndex = favorites.findIndex((f: any) => f.id === item.id && f.type === item.type);
+    const favorites = getFavorites(address);
+    const existingIndex = favorites.findIndex((f: MovieCardProps) => f.id === item.id && f.media_type === item.media_type);
     
     if (existingIndex > -1) {
       favorites.splice(existingIndex, 1);
@@ -313,7 +341,7 @@ export const toggleFavorite = (item: any) => {
       favorites.unshift({
         id: item.id,
         title: item.title,
-        type: item.type,
+        media_type: item.media_type,
         poster_path: item.poster_path,
         backdrop_path: item.backdrop_path,
         vote_average: item.vote_average,
@@ -323,7 +351,8 @@ export const toggleFavorite = (item: any) => {
       });
     }
 
-    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    const key = getWalletKey(STORAGE_KEYS.FAVORITES, address);
+    localStorage.setItem(key, JSON.stringify(favorites));
     return favorites;
   } catch (error) {
     console.error('Error toggling favorite:', error);
@@ -333,13 +362,11 @@ export const toggleFavorite = (item: any) => {
 
 /**
  * Check if item is in favorites
- * @param {number} id - Item ID
- * @param {string} type - Item type
  */
-export const isFavorite = (id: number, type: string) => {
-  if (typeof window === 'undefined') return false;
-  const favorites = getFavorites();
-  return favorites.some((f: any) => f.id === id && f.type === type);
+export const isFavorite = (id: number, type: string, address?: string) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return false;
+  const favorites = getFavorites(address);
+  return favorites.some((f: any) => f.id === id && f.media_type === type);
 };
 
 export default {

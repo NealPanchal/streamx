@@ -1,16 +1,18 @@
 'use client';
 
-import { Suspense, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ThumbsUp, Share2, ArrowLeft, Star, Clock, Calendar, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
 import { useTVDetails } from '@/lib/tmdb';
 import ContentRow from '@/components/ContentRow';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import { addToWatchHistory } from '@/utils/storage';
 
-function TVDetailContent() {
+export default function TVDetailPage() {
+  const { address: walletAddress } = useAccount();
   const params = useParams();
   const searchParams = useSearchParams();
   const tvId = params.id as string;
@@ -33,14 +35,15 @@ function TVDetailContent() {
       addToWatchHistory({
         id: tvShow.id,
         title: tvShow.name,
-        type: 'tv',
+        media_type: 'tv',
         poster_path: tvShow.poster_path,
         backdrop_path: tvShow.backdrop_path,
+        vote_average: tvShow.vote_average,
         season: selectedSeason,
         episode: selectedEpisode
-      });
+      }, walletAddress);
     }
-  }, [tvShow, selectedSeason, selectedEpisode]);
+  }, [tvShow, selectedSeason, selectedEpisode, walletAddress]);
 
   const handlePlay = (s?: number, e?: number) => {
     if (s !== undefined) setSelectedSeason(s);
@@ -261,20 +264,5 @@ function TVDetailContent() {
         </div>
       )}
     </div>
-  );
-}
-
-export default function TVDetailPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-base-black">
-        <div className="relative h-[70vh] mb-8 bg-gray-900/50 animate-pulse" />
-        <div className="container mx-auto px-4">
-          <SkeletonLoader type="row" count={2} />
-        </div>
-      </div>
-    }>
-      <TVDetailContent />
-    </Suspense>
   );
 }

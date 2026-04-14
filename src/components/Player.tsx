@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useAccount } from 'wagmi';
 import { motion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Maximize2, SkipForward } from 'lucide-react';
 import { PlayerProps, PlayerEvent } from '@/types';
+import { saveWatchProgress } from '@/utils/storage';
 
 const Player = ({ id, type, season, episode, title, onProgress, onEnded }: PlayerProps) => {
+  const { address } = useAccount();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +25,8 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     if (type === 'movie') {
       let url = `${baseUrl}/embed/movie/${id}`;
       
-      // Add saved progress if exists (only on client)
-      let savedProgress = null;
-      if (typeof window !== 'undefined') {
-        savedProgress = localStorage.getItem(`movie_${id}_progress`);
-      }
-
+      // Add saved progress if exists
+      const savedProgress = typeof window !== 'undefined' ? localStorage.getItem(`movie_${id}_progress`) : null;
       if (savedProgress) {
         url += `?progress=${savedProgress}`;
       }
@@ -41,12 +40,8 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     } else if (type === 'tv' && season && episode) {
       let url = `${baseUrl}/embed/tv/${id}/${season}/${episode}`;
       
-      // Add saved progress if exists (only on client)
-      let savedProgress = null;
-      if (typeof window !== 'undefined') {
-        savedProgress = localStorage.getItem(`tv_${id}_s${season}_e${episode}_progress`);
-      }
-
+      // Add saved progress if exists
+      const savedProgress = typeof window !== 'undefined' ? localStorage.getItem(`tv_${id}_s${season}_e${episode}_progress`) : null;
       if (savedProgress) {
         url += `?progress=${savedProgress}`;
       }
@@ -63,6 +58,19 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     
     return null;
   }, [id, type, season, episode]);
+
+  // Save progress to localStorage and Supabase
+  const saveProgress = useCallback((currentTime: number, duration: number) => {
+    const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+    
+    // Save to wallet-specific storage
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      saveWatchProgress(id, type, currentTime, duration, season, episode, address);
+    }
+    
+    // Save to database (if user is authenticated)
+    // This will be implemented with Supabase integration
+  }, [id, type, season, episode, address]);
 
   // Handle player events
   useEffect(() => {
@@ -129,26 +137,7 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [onProgress, onEnded]);
-
-  // Save progress to localStorage and Supabase
-  const saveProgress = useCallback((currentTime: number, duration: number) => {
-    if (typeof window === 'undefined') return;
-    
-    const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-    
-    // Save to localStorage
-    const key = type === 'movie' 
-      ? `movie_${id}` 
-      : `tv_${id}_s${season}_e${episode}`;
-    
-    localStorage.setItem(`${key}_progress`, currentTime.toString());
-    localStorage.setItem(`${key}_progress_percentage`, progress.toString());
-    localStorage.setItem(`${key}_last_updated`, Date.now().toString());
-    
-    // Save to database (if user is authenticated)
-    // This will be implemented with Supabase integration
-  }, [id, type, season, episode]);
+  }, [onProgress, onEnded, saveProgress]);
 
   // Player controls
   const togglePlay = () => {

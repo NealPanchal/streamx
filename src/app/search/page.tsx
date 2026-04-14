@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, X, Clock, Film, Tv, Play, Info } from 'lucide-react';
@@ -94,7 +94,7 @@ function SearchContent() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-400 uppercase tracking-widest text-sm text-white">Recent Searches</h2>
               <button
-                onClick={() => { localStorage.removeItem('cineby_search_history'); setSearchHistory([]); }}
+                onClick={() => { localStorage.removeItem('basestream_search_history'); setSearchHistory([]); }}
                 className="text-gray-500 hover:text-white transition-colors text-sm font-bold"
               >
                 CLEAR ALL
@@ -167,11 +167,12 @@ function SearchContent() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-base-black pt-24 font-base">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto h-20 bg-gray-900/50 animate-pulse rounded-2xl mb-12" />
-          <SkeletonLoader type="row" count={1} />
-        </div>
+      <div className="min-h-screen bg-base-black pt-24 pb-20 font-base flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-14 h-14 border-4 border-base-blue border-t-transparent rounded-full"
+        />
       </div>
     }>
       <SearchContent />

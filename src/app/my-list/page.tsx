@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { List } from 'lucide-react';
+import { useAccount } from 'wagmi';
 import { getFavorites } from '@/utils/storage';
 import MovieCard from '@/components/MovieCard';
 
@@ -10,11 +11,13 @@ export default function MyListPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { address } = useAccount();
+
   useEffect(() => {
-    const list = getFavorites();
+    const list = getFavorites(address);
     setFavorites(list);
     setIsLoading(false);
-  }, []);
+  }, [address]);
 
   if (isLoading) {
     return (

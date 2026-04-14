@@ -13,7 +13,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Scrollbar utilities */
+/* ============================================
+   Scrollbar utilities
+   ============================================ */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -25,7 +27,9 @@ body {
   scroll-behavior: smooth;
 }
 
-/* Line clamp utilities */
+/* ============================================
+   Line clamp utilities
+   ============================================ */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -37,4 +41,70 @@ body {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ============================================
+   Glassmorphism utility classes
+   ============================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   RainbowKit Theme Overrides
+   ============================================ */
+[data-rk] {
+  --rk-colors-accentColor: #0052FF !important;
+  --rk-colors-accentColorForeground: #ffffff !important;
+}
+
+/* Make RainbowKit modals match our dark theme */
+[data-rk] [role="dialog"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================
+   Animated gradient backgrounds
+   ============================================ */
+.gradient-bg {
+  background: radial-gradient(
+    ellipse 80% 80% at 50% -20%,
+    rgba(0, 82, 255, 0.15),
+    transparent
+  );
+}
+
+.gradient-bg-subtle {
+  background: radial-gradient(
+    ellipse 100% 100% at 50% 0%,
+    rgba(0, 82, 255, 0.06),
+    transparent 70%
+  );
+}
+
+/* Shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
