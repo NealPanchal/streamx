@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ThumbsUp, Share2, ArrowLeft, Star, Clock, Calendar, Search } from 'lucide-react';
@@ -10,7 +10,7 @@ import ContentRow from '@/components/ContentRow';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import { addToWatchHistory } from '@/utils/storage';
 
-export default function TVDetailPage() {
+function TVDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tvId = params.id as string;
@@ -261,5 +261,20 @@ export default function TVDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function TVDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-base-black">
+        <div className="relative h-[70vh] mb-8 bg-gray-900/50 animate-pulse" />
+        <div className="container mx-auto px-4">
+          <SkeletonLoader type="row" count={2} />
+        </div>
+      </div>
+    }>
+      <TVDetailContent />
+    </Suspense>
   );
 }

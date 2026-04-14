@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, X, Clock, Film, Tv, Play, Info } from 'lucide-react';
@@ -10,7 +10,7 @@ import SkeletonLoader from '@/components/SkeletonLoader';
 import { getSearchHistory, addToSearchHistory } from '@/utils/storage';
 import { SearchResult } from '@/types';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQuery = searchParams.get('q') || '';
@@ -161,5 +161,20 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-base-black pt-24 font-base">
+        <div className="container mx-auto px-6">
+          <div className="max-w-3xl mx-auto h-20 bg-gray-900/50 animate-pulse rounded-2xl mb-12" />
+          <SkeletonLoader type="row" count={1} />
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
