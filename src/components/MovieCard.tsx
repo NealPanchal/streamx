@@ -33,28 +33,29 @@ const MovieCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [inFavorites, setInFavorites] = useState(false);
 
+  const [progress, setProgress] = useState(initialProgress || 0);
+
   useEffect(() => {
     setInFavorites(isFavorite(id, media_type));
-  }, [id, media_type]);
+    
+    // Load progress from localStorage on client side
+    if (!initialProgress) {
+      try {
+        const data = localStorage.getItem('cineby_watch_progress');
+        const progressData = data ? JSON.parse(data) : {};
+        const key = media_type === 'movie'
+          ? `movie_${id}`
+          : `tv_${id}_s${season}_e${episode}`;
+        
+        if (progressData[key]) {
+          setProgress(progressData[key].percentage || 0);
+        }
+      } catch (err) {
+        console.error('Error loading progress:', err);
+      }
+    }
+  }, [id, media_type, initialProgress, season, episode]);
 
-  const savedProgress =
-    typeof window !== 'undefined'
-      ? (() => {
-          try {
-            const data = localStorage.getItem('cineby_watch_progress');
-            const progress = data ? JSON.parse(data) : {};
-            const key =
-              media_type === 'movie'
-                ? `movie_${id}`
-                : `tv_${id}_s${season}_e${episode}`;
-            return progress[key] || null;
-          } catch {
-            return null;
-          }
-        })()
-      : null;
-
-  const progress = initialProgress || savedProgress?.percentage || 0;
   const progressPercentage = Math.min(progress, 99);
 
   const imageUrl = poster_path

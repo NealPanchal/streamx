@@ -22,8 +22,12 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     if (type === 'movie') {
       let url = `${baseUrl}/embed/movie/${id}`;
       
-      // Add saved progress if exists
-      const savedProgress = localStorage.getItem(`movie_${id}_progress`);
+      // Add saved progress if exists (only on client)
+      let savedProgress = null;
+      if (typeof window !== 'undefined') {
+        savedProgress = localStorage.getItem(`movie_${id}_progress`);
+      }
+
       if (savedProgress) {
         url += `?progress=${savedProgress}`;
       }
@@ -37,8 +41,12 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
     } else if (type === 'tv' && season && episode) {
       let url = `${baseUrl}/embed/tv/${id}/${season}/${episode}`;
       
-      // Add saved progress if exists
-      const savedProgress = localStorage.getItem(`tv_${id}_s${season}_e${episode}_progress`);
+      // Add saved progress if exists (only on client)
+      let savedProgress = null;
+      if (typeof window !== 'undefined') {
+        savedProgress = localStorage.getItem(`tv_${id}_s${season}_e${episode}_progress`);
+      }
+
       if (savedProgress) {
         url += `?progress=${savedProgress}`;
       }
@@ -125,6 +133,8 @@ const Player = ({ id, type, season, episode, title, onProgress, onEnded }: Playe
 
   // Save progress to localStorage and Supabase
   const saveProgress = useCallback((currentTime: number, duration: number) => {
+    if (typeof window === 'undefined') return;
+    
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
     
     // Save to localStorage

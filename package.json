@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.1",
+    "@rainbow-me/rainbowkit": "^2.2.10",
     "@supabase/supabase-js": "^2.78.0",
+    "@tanstack/react-query": "^5.99.0",
     "autoprefixer": "^10.5.0",
     "axios": "^1.15.0",
     "clsx": "^2.1.1",
@@ -21,7 +23,9 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "swr": "^2.4.1",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "viem": "^2.47.17",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@types/node": "^20",
